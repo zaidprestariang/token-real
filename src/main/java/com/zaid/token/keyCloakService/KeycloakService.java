@@ -70,7 +70,7 @@ public class KeycloakService {
             StringBuffer result = new StringBuffer();
             tokenResponse.setStatus_code(httpResponse.getStatusLine().getStatusCode());
             tokenResponse.setStatus_phrase(httpResponse.getStatusLine().getReasonPhrase());
-            //System.out.println("Response Code : " + tokenResponse.getStatus_code() + " : " + tokenResponse.getStatus_phrase());
+            System.out.println("Response Code : " + tokenResponse.getStatus_code() + " : " + tokenResponse.getStatus_phrase());
 
             if (tokenResponse.getStatus_code() == 200) {
                 BufferedReader rd = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
@@ -138,23 +138,24 @@ public class KeycloakService {
                 httpResponse = client.execute(post);
                 tokenResponse.setStatus_code(httpResponse.getStatusLine().getStatusCode());
                 tokenResponse.setStatus_phrase(httpResponse.getStatusLine().getReasonPhrase());
-                //System.out.println("Response Code : " + tokenResponse.getStatus_code() + " : " + tokenResponse.getStatus_phrase());
+                System.out.println("Response Code : " + tokenResponse.getStatus_code() + " : " + tokenResponse.getStatus_phrase());
 
-                BufferedReader rd = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
-                StringBuffer result = new StringBuffer();
-                String line1 = "";
-                while ((line1 = rd.readLine()) != null) {
-                    result.append(line1);
+                if (tokenResponse.getStatus_code() == 200) {
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
+                    StringBuffer result = new StringBuffer();
+                    String line1 = "";
+                    while ((line1 = rd.readLine()) != null) {
+                        result.append(line1);
+                    }
+                    JSONObject parse_result = new JSONObject(result.toString());
+                    //System.out.println("New access token : " + parse_result.get("access_token"));
+                    //System.out.println("New refresh token : " + parse_result.get("access_token"));
+
+                    tokenResponse = infoToken(parse_result.get("access_token").toString());
+                    tokenResponse.setAccess_token(parse_result.get("access_token").toString());
+                    tokenResponse.setRefresh_token(parse_result.get("refresh_token").toString());
+                    response = true;
                 }
-
-                JSONObject parse_result = new JSONObject(result.toString());
-                //System.out.println("New access token : " + parse_result.get("access_token"));
-                //System.out.println("New refresh token : " + parse_result.get("access_token"));
-
-                tokenResponse = infoToken(parse_result.get("access_token").toString());
-                tokenResponse.setAccess_token(parse_result.get("access_token").toString());
-                tokenResponse.setRefresh_token(parse_result.get("refresh_token").toString());
-                response = true;
             }
         } catch (Exception ex) {
             tokenResponse.setStatus_phrase(ex.getMessage());
@@ -183,11 +184,13 @@ public class KeycloakService {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+        System.out.println("sas");
         HttpResponse response = null;
         response = client.execute(post);
+        System.out.println("qd");
         tokenResponse.setStatus_code(response.getStatusLine().getStatusCode());
         tokenResponse.setStatus_phrase(response.getStatusLine().getReasonPhrase());
-        //System.out.println("Response Code : " + tokenResponse.getStatus_code() + " : " + tokenResponse.getStatus_phrase());
+        System.out.println("Response Code : " + tokenResponse.getStatus_code() + " : " + tokenResponse.getStatus_phrase());
 
         if (response.getStatusLine().getStatusCode() == 200) {
             BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
@@ -227,23 +230,27 @@ public class KeycloakService {
 
         Response createUserResponse = keycloak.realm(keycloakRealm).users().create(userRepresentation);
         createUserResponse.close();
+
         String user_id;
-        user_id = getCreatedId(createUserResponse);
+        if (createUserResponse.getStatus() == 200) {
+            user_id = getCreatedId(createUserResponse);
 
-        //System.out.printf("User created with id: %s%n", user_id);
+            //System.out.printf("User created with id: %s%n", user_id);
 
-        CredentialRepresentation passwordCred = new CredentialRepresentation();
-        passwordCred.setTemporary(false);
-        passwordCred.setValue(tokenDetail.getPassword());
-        passwordCred.setType(CredentialRepresentation.PASSWORD);
+            CredentialRepresentation passwordCred = new CredentialRepresentation();
+            passwordCred.setTemporary(false);
+            passwordCred.setValue(tokenDetail.getPassword());
+            passwordCred.setType(CredentialRepresentation.PASSWORD);
 
-        keycloak.realm(keycloakRealm).users().get(user_id).resetPassword(passwordCred);
-        //System.out.printf("Password for user with id: %s reseted%n", user_id);
+            keycloak.realm(keycloakRealm).users().get(user_id).resetPassword(passwordCred);
+            //System.out.printf("Password for user with id: %s reseted%n", user_id);
 
-        RoleRepresentation userRealmRole = keycloak.realm(keycloakRealm).roles().get(tokenDetail.getRole()).toRepresentation();
-        keycloak.realm(keycloakRealm).users().get(user_id).roles().realmLevel().add(Arrays.asList(userRealmRole));
-        //System.out.printf("Granted user realm role to user with id: %s%n", user_id);
-
+            RoleRepresentation userRealmRole = keycloak.realm(keycloakRealm).roles().get(tokenDetail.getRole()).toRepresentation();
+            keycloak.realm(keycloakRealm).users().get(user_id).roles().realmLevel().add(Arrays.asList(userRealmRole));
+            //System.out.printf("Granted user realm role to user with id: %s%n", user_id);
+        } else {
+            user_id = String.valueOf(createUserResponse.getStatus());
+        }
         return user_id;
     }
 
@@ -259,7 +266,7 @@ public class KeycloakService {
             resource.resetPassword(newCredential);
             response = true;
         } catch (Exception ex) {
-            //
+            System.out.printf(ex.getMessage());
         }
         return response;
     }
@@ -277,7 +284,7 @@ public class KeycloakService {
             resource.update(userRepresentation);
             response = true;
         } catch (Exception ex) {
-            //
+            System.out.printf(ex.getMessage());
         }
         return response;
     }
@@ -294,7 +301,7 @@ public class KeycloakService {
             resource.update(userRepresentation);
             response = true;
         } catch (Exception ex) {
-            //
+            System.out.printf(ex.getMessage());
         }
         return response;
     }
@@ -308,7 +315,7 @@ public class KeycloakService {
             keycloak.realm(keycloakRealm).users().get(user_id).roles().realmLevel().add(Arrays.asList(userRealmRole));
             response = true;
         } catch (Exception ex) {
-            //
+            System.out.printf(ex.getMessage());
         }
         return response;
     }
@@ -322,7 +329,7 @@ public class KeycloakService {
             keycloak.realm(keycloakRealm).users().get(user_id).roles().realmLevel().remove(Arrays.asList(userRealmRole));
             response = true;
         } catch (Exception ex) {
-            //
+            System.out.printf(ex.getMessage());
         }
         return response;
     }
