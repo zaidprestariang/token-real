@@ -1,4 +1,4 @@
-package com.zaid.token.keyCloakService;
+package com.ptech.skin.api.token.KeyCloakService;
 
 import java.util.List;
 
@@ -99,3 +99,4 @@ public class TokenResponse {
         this.status_phrase = status_phrase;
     }
 }
+

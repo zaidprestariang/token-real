@@ -1,0 +1,54 @@
+buildscript {
+	ext {
+		springBootVersion = '2.0.4.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'maven'
+
+group = 'com.ptech.skin.api'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	maven {
+		url "http://192.168.101.60:8081/repository/skintestrepo/"
+	}
+}
+
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	compile('org.keycloak:keycloak-spring-boot-starter:4.3.0.Final')
+	compile('org.keycloak:keycloak-admin-client:3.4.2.Final')
+	compile('org.jboss.resteasy:resteasy-client:3.0.14.Final')
+	compile('org.jboss.resteasy:resteasy-multipart-provider:3.0.14.Final')
+	compile('org.jboss.resteasy:resteasy-jackson2-provider:3.0.14.Final')
+	compile('org.json:json:20180130')
+	testCompile "junit:junit:3.8.1"
+	compile "org.jbundle.util:org.jbundle.util.jbackup:2.0.0"
+	compile "net.sf.webtestfixtures:webtestfixtures:2.0.1.3"
+}
+
+uploadArchives {
+	repositories {
+		mavenDeployer {
+			repository(url: "http://192.168.101.60:8081/repository/skintestrepo/") {
+				authentication(userName: "admin", password: "admin123")
+			}
+			pom.version = "1.0-SNAPSHOT"
+			pom.artifactId = "simple-project"
+			pom.groupId = "com.example"
+		}
+	}
+}

@@ -1,4 +1,4 @@
-package com.zaid.token.keyCloakService;
+package com.ptech.skin.api.token.KeyCloakService;
 
 public class TokenDetail {
 
@@ -81,3 +81,4 @@ public class TokenDetail {
         this.enabled = enabled;
     }
 }
+

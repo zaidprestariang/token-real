@@ -24,19 +24,30 @@ This is a KeyCloak token authentication service using Open ID Connect protocol, 
 - Set configuration at application.properties for these parameters, for example:
 
         server.port=8082
-        keycloak.url=http://localhost:8180/auth
-        keycloak.clientId=product-app
-        keycloak.clientSecret=d5e59078-bbab-46b9-a48d-ff34abbf517c
-        keycloak.adminUser=admin
-        keycloak.adminPassword=password
-        keycloak.realm=SpringBoot    
-- Start the program and refer to list of api below. Test directly using Postman.
+        
+        keycloak.auth-server-url=http://localhost:8180/auth
+        keycloak.realm=SpringBoot
+        keycloak.public-client=true
+        keycloak.resource=normal
+        keycloak.principal-attribute=preferred_username
+        
+        keycloaks.client-password=d5e59078-bbab-46b9-a48d-ff34abbf517c
+        keycloaks.client-id=product-app
+        keycloaks.admin-user=admin
+        keycloaks.admin-password=password
+- To start the program, go to your program directory and run:
+
+        mvnw spring-boot:run
+- Refer to list of api below. Test directly using Postman.
 
 **List of API**
 
 1. Create new token
     - Called during login
-    - http://localhost:8082/createToken/<username>/<password>
+    - http://localhost:8082/createToken
+    - Must add these parameters to the header (all mandatory):
+        - username
+        - password
     - Check the "result" parameter to be true if success, it will return as below _(the access_token and refresh token must be kept and sent every time make request to microservice)_
     
             {
@@ -173,3 +184,9 @@ This is a KeyCloak token authentication service using Open ID Connect protocol, 
     - If success will return true
     - If fail will return false
     
+9. Logout the token session
+    - Should be used when user logout the system
+    - http://localhost:8082/logout
+    - Must add these parameters to the header (all mandatory):
+        - access_token (as Authorization header type OAuth 2.0, in the format of "Bearer: "+<access_token>)
+        - refresh_token

@@ -1,26 +1,22 @@
-package com.zaid.token;
+package com.ptech.skin.api.token;
 
-
-import com.zaid.token.keyCloakService.KeycloakService;
-import com.zaid.token.keyCloakService.TokenDetail;
-import com.zaid.token.keyCloakService.TokenResponse;
+import com.ptech.skin.api.token.KeyCloakService.KeyCloakService;
+import com.ptech.skin.api.token.KeyCloakService.TokenDetail;
+import com.ptech.skin.api.token.KeyCloakService.TokenResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.io.IOException;
 
 @RestController
 public class TokenController {
 
     @Autowired
-    private KeycloakService keycloakService;
+    private KeyCloakService keycloakService;
 
     @RequestMapping("/checkToken")
-    public TokenResponse checkToken(@RequestHeader String Authorization, @RequestHeader String refresh_token) throws IOException {
+    public TokenResponse checkToken(@RequestHeader String Authorization, @RequestHeader String refresh_token) {
         TokenResponse tokenResponse = new TokenResponse();
         try {
             Authorization = Authorization.replace("Bearer ", "");
@@ -32,8 +28,8 @@ public class TokenController {
         return tokenResponse;
     }
 
-    @RequestMapping("/createToken/{username}/{password}")
-    public TokenResponse createToken(@PathVariable String username, @PathVariable String password) {
+    @RequestMapping("/createToken")
+    public TokenResponse createToken(@RequestHeader String username, @RequestHeader String password) {
         TokenResponse tokenResponse = new TokenResponse();
         try {
             tokenResponse = keycloakService.createToken(username, password);
@@ -120,5 +116,12 @@ public class TokenController {
         }
         return keycloakService.removeRole(headers.get("user_id").get(0), headers.get("role").get(0));
     }
+
+    @RequestMapping("/logout")
+    public boolean logout(@RequestHeader String Authorization, @RequestHeader String refresh_token) {
+        Authorization = Authorization.replace("Bearer ", "");
+        return keycloakService.logout(Authorization, refresh_token);
+    }
 }
+
 
